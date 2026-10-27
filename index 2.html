@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>漢方茶鑑</title>
+    <!-- 載入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 載入 React 與 ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- 載入 Babel 用於解析 JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- 載入 Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', 'Noto Serif TC', serif;
+            background-color: #FBF9F5;
+            color: #2C3E35;
+        }
+        .font-serif-tc {
+            font-family: 'Noto Serif TC', serif;
+        }
+        .paper-texture {
+            background-color: #FBF9F5;
+            background-image: radial-gradient(#dcd6cd 0.75px, transparent 0.75px);
+            background-size: 16px 16px;
+        }
+    </style>
+</head>
+<body class="paper-texture min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function App() {
+            const [currentView, setCurrentView] = useState('home');
+            const [selectedNeeds, setSelectedNeeds] = useState([]);
+            const [quizResult, setQuizResult] = useState(null);
+            const [favorites, setFavorites] = useState(['黃耆枸杞紅棗茶']);
+            const [activeCatalogItem, setActiveCatalogItem] = useState(null);
+            const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+            const [favoritesOpen, setFavoritesOpen] = useState(false);
+
+            const needsList = [
+                { id: 1, name: "想要舒緩壓力", desc: "安撫緊繃神經，找回內心平靜" },
+                { id: 2, name: "補充能量", desc: "提振精神，迎接充實日常" },
+                { id: 3, name: "補氣健脾", desc: "調理脾胃，固本培元" },
+                { id: 4, name: "養血安神", desc: "滋養氣血，安穩心神" },
+                { id: 5, name: "改善睡眠品質", desc: "沉澱思緒，夜夜好眠" },
+                { id: 6, name: "舒緩焦慮", desc: "化解煩悶，保持身心清明" },
+                { id: 7, name: "促進食慾", desc: "開胃健脾，找回好胃口" },
+                { id: 8, name: "滋補強身", desc: "增強體力，日常保養首選" },
+                { id: 9, name: "養顏美容", desc: "紅潤氣色，煥發自然光采" },
+                { id: 10, name: "疏風清熱", desc: "清爽解燥，淨化身心" },
+                { id: 11, name: "平肝明目", desc: "舒緩眼壓，常保思緒清晰" }
+            ];
+
+            const teas = [
+                {
+                    name: "黃耆枸杞紅棗茶",
+                    tags: ["補氣健脾", "滋補強身", "補充能量"],
+                    desc: "經典溫潤茶飲，結合黃耆與紅棗的甘甜，適合日常補氣與滋養身體。",
+                    ingredients: ["枸杞 10g", "黃耆片 5g", "紅棗 5 顆", "水 500ml"],
+                    steps: ["將黃耆片與紅棗放入水中煮沸。", "轉小火煮約 10 分鐘。", "加入枸杞，再煮約 5 分鐘。", "依個人口味決定是否添加少量蜂蜜。"],
+                    notes: "黃耆等中藥材並非人人適用；孕期、服藥或有慢性疾病者應先諮詢醫療專業人員。",
+                    source: "漢方茶鑑編輯室"
+                },
+                {
+                    name: "桂圓紅棗茶",
+                    tags: ["養血安神", "改善睡眠品質", "養顏美容"],
+                    desc: "濃郁香甜的溫補茶品，桂圓與紅棗交織出溫暖滋味，安神助眠。",
+                    ingredients: ["桂圓 20g", "紅棗 10–12 顆", "水 500–600ml"],
+                    steps: ["將紅棗洗淨，必要時切開。", "紅棗與桂圓加入水中。", "小火煮約 30 分鐘。", "可依喜好添加少量黑糖，也可以不加。"],
+                    notes: "桂圓與紅棗本身具有甜味，額外加糖應適量。若有血糖管理需求，應留意總糖分。孕期或有特殊健康狀況者，飲用前先詢問專業人員。",
+                    source: "漢方茶鑑編輯室"
+                },
+                {
+                    name: "紅棗枸杞茶",
+                    tags: ["養顏美容", "補充能量", "滋補強身"],
+                    desc: "清甜爽口、材料單純的國民茶飲，隨時補充好氣色。",
+                    ingredients: ["紅棗 1 米杯", "枸杞 1 米杯", "水 500–600ml"],
+                    steps: ["紅棗洗淨後劃開。", "加水煮沸後煮約 10 分鐘。", "加入枸杞，再煮約 3–5 分鐘。", "可依喜好添加少量蜂蜜或糖。"],
+                    notes: "可依個人口味調整濃度與份量。若有血糖管理需求，注意添加糖量。",
+                    source: "https://www.vilson.com/Article/Detail/103740?lang=zh-TW"
+                },
+                {
+                    name: "菊花枸杞茶",
+                    tags: ["平肝明目", "疏風清熱", "想要舒緩壓力", "舒緩焦慮"],
+                    desc: "帶有淡雅菊花清香與薄荷涼意，最適合忙碌過後沉澱心神、明目清心。",
+                    ingredients: ["菊花 10g", "枸杞 15g", "薄荷 5g", "水 800ml"],
+                    steps: ["將材料洗淨。", "將水煮沸後關火。", "加入菊花、枸杞與薄荷。", "蓋上鍋蓋浸泡 5–8 分鐘。", "過濾後溫飲。"],
+                    notes: "菊花可能引發菊科植物過敏者的反應；薄荷與藥材也可能不適合部分人群。孕期、服藥或有慢性疾病者應先確認適用性。",
+                    source: "漢方茶鑑編輯室"
+                }
+            ];
+
+            const toggleNeed = (id) => {
+                if (selectedNeeds.includes(id)) {
+                    setSelectedNeeds(selectedNeeds.filter(item => item !== id));
+                } else {
+                    setSelectedNeeds([...selectedNeeds, id]);
+                }
+            };
+
+            const calculateResult = () => {
+                if (selectedNeeds.length === 0) return;
+                const selectedNames = selectedNeeds.map(id => needsList.find(n => n.id === id).name);
+                
+                let scores = teas.map(tea => {
+                    let matchCount = tea.tags.filter(tag => selectedNames.includes(tag)).length;
+                    return { tea, score: matchCount };
+                });
+
+                scores.sort((a, b) => b.score - a.score);
+                const bestTea = scores[0].score > 0 ? scores[0].tea : teas[0];
+
+                setQuizResult({
+                    tea: bestTea,
+                    matchedNeeds: selectedNames
+                });
+                setCurrentView('result');
+            };
+
+            const toggleFavorite = (teaName) => {
+                if (favorites.includes(teaName)) {
+                    setFavorites(favorites.filter(item => item !== teaName));
+                } else {
+                    setFavorites([...favorites, teaName]);
+                }
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col justify-between">
+                    {/* Header */}
+                    <header className="sticky top-0 z-50 bg-[#FBF9F5]/90 backdrop-blur-md border-b border-[#879782]/20">
+                        <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
+                            <div className="cursor-pointer flex items-center gap-3" onClick={() => setCurrentView('home')}>
+                                <div className="w-9 h-9 rounded-full bg-[#C84B31] text-white flex items-center justify-center font-serif-tc text-lg shadow-sm">漢</div>
+                                <div>
+                                    <h1 className="font-serif-tc text-xl font-bold tracking-widest text-[#2C3E35]">漢方茶鑑</h1>
+                                    <p className="text-[10px] text-[#879782] tracking-wider">Hanfang Tea Compendium</p>
+                                </div>
+                            </div>
+
+                            {/* Desktop Nav */}
+                            <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-[#2C3E35]">
+                                <button onClick={() => setCurrentView('home')} className={`transition-colors hover:text-[#C84B31] ${currentView === 'home' ? 'text-[#C84B31] border-b-2 border-[#C84B31] pb-1' : ''}`}>首頁</button>
+                                <button onClick={() => setCurrentView('quiz')} className={`transition-colors hover:text-[#C84B31] ${currentView === 'quiz' ? 'text-[#C84B31] border-b-2 border-[#C84B31] pb-1' : ''}`}>開始測驗</button>
+                                <button onClick={() => setCurrentView('catalog')} className={`transition-colors hover:text-[#C84B31] ${currentView === 'catalog' ? 'text-[#C84B31] border-b-2 border-[#C84B31] pb-1' : ''}`}>茶飲圖鑑</button>
+                                <button onClick={() => setCurrentView('about')} className={`transition-colors hover:text-[#C84B31] ${currentView === 'about' ? 'text-[#C84B31] border-b-2 border-[#C84B31] pb-1' : ''}`}>關於茶鑑</button>
+                            </nav>
+
+                            <div className="flex items-center gap-4">
+                                <button onClick={() => setFavoritesOpen(true)} className="relative p-2 rounded-full hover:bg-[#879782]/10 transition-colors text-[#2C3E35]">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                                    {favorites.length > 0 && <span className="absolute top-0 right-0 w-4 h-4 bg-[#C84B31] text-white text-[10px] rounded-full flex items-center justify-center">{favorites.length}</span>}
+                                </button>
+                                <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2 text-[#2C3E35]">
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Mobile Menu */}
+                        {mobileMenuOpen && (
+                            <div className="md:hidden bg-[#FBF9F5] border-b border-[#879782]/20 px-6 py-4 flex flex-col gap-4 text-sm font-medium">
+                                <button onClick={() => { setCurrentView('home'); setMobileMenuOpen(false); }} className="text-left py-2">首頁</button>
+                                <button onClick={() => { setCurrentView('quiz'); setMobileMenuOpen(false); }} className="text-left py-2">開始測驗</button>
+                                <button onClick={() => { setCurrentView('catalog'); setMobileMenuOpen(false); }} className="text-left py-2">茶飲圖鑑</button>
+                                <button onClick={() => { setCurrentView('about'); setMobileMenuOpen(false); }} className="text-left py-2">關於茶鑑</button>
+                            </div>
+                        )}
+                    </header>
+
+                    {/* Main Content */}
+                    <main className="flex-grow max-w-6xl w-full mx-auto px-6 py-12">
+                        {currentView === 'home' && (
+                            <div className="flex flex-col items-center justify-center text-center py-16 md:py-24">
+                                <div className="inline-block px-4 py-1.5 mb-6 rounded-full bg-[#879782]/10 text-[#879782] text-xs tracking-widest font-medium">
+                                    東方美學 • 日常養生
+                                </div>
+                                <h2 className="font-serif-tc text-4xl md:text-6xl font-bold text-[#2C3E35] tracking-widest mb-6">
+                                    漢方茶鑑
+                                </h2>
+                                <p className="text-base md:text-lg text-[#879782] max-w-lg mb-10 leading-relaxed font-serif-tc">
+                                    「從日常所需，尋一杯適合自己的茶。」
+                                </p>
+                                <button 
+                                    onClick={() => setCurrentView('quiz')}
+                                    className="px-8 py-4 bg-[#2C3E35] text-[#FBF9F5] font-medium tracking-widest rounded-full hover:bg-[#C84B31] transition-all duration-300 shadow-md flex items-center gap-3">
+                                    開始尋茶
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                </button>
+                            </div>
+                        )}
+
+                        {currentView === 'quiz' && (
+                            <div className="max-w-4xl mx-auto">
+                                <div className="text-center mb-12">
+                                    <h2 className="font-serif-tc text-3xl font-bold text-[#2C3E35] mb-3">選擇您的近期狀態與需求</h2>
+                                    <p className="text-sm text-[#879782]">可複選一項或多項，我們將為您推薦最合適的漢方茶飲</p>
+                                    <div className="mt-4 inline-block px-3 py-1 bg-[#879782]/10 rounded-full text-xs text-[#2C3E35]">
+                                        已選擇：<span className="font-bold text-[#C84B31]">{selectedNeeds.length}</span> 項需求
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+                                    {needsList.map((need) => {
+                                        const isSelected = selectedNeeds.includes(need.id);
+                                        return (
+                                            <div 
+                                                key={need.id}
+                                                onClick={() => toggleNeed(need.id)}
+                                                className={`p-5 rounded-2xl border cursor-pointer transition-all duration-300 relative flex flex-col justify-between ${isSelected ? 'border-[#C84B31] bg-[#C84B31]/5 shadow-sm' : 'border-[#879782]/30 bg-white/50 hover:border-[#879782]'}`}>
+                                                {isSelected && (
+                                                    <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-[#C84B31] text-white text-[10px] flex items-center justify-center font-serif-tc">印</div>
+                                                )}
+                                                <div>
+                                                    <h3 className="font-serif-tc font-bold text-[#2C3E35] text-lg mb-1">{need.name}</h3>
+                                                    <p className="text-xs text-[#879782]">{need.desc}</p>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                <div className="flex justify-center">
+                                    <button 
+                                        disabled={selectedNeeds.length === 0}
+                                        onClick={calculateResult}
+                                        className={`px-10 py-4 rounded-full font-medium tracking-widest transition-all duration-300 ${selectedNeeds.length > 0 ? 'bg-[#C84B31] text-white hover:bg-[#b03d25] shadow-md cursor-pointer' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
+                                        產生茶飲推薦
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {currentView === 'result' && quizResult && (
+                            <div className="max-w-3xl mx-auto bg-white/80 border border-[#879782]/20 rounded-3xl p-8 md:p-12 shadow-sm">
+                                <div className="flex justify-between items-start mb-6">
+                                    <div>
+                                        <span className="text-xs tracking-widest text-[#879782] uppercase">Personalized Recommendation</span>
+                                        <h2 className="font-serif-tc text-3xl font-bold text-[#2C3E35] mt-1">{quizResult.tea.name}</h2>
+                                    </div>
+                                    <button 
+                                        onClick={() => toggleFavorite(quizResult.tea.name)}
+                                        className={`p-3 rounded-full border transition-colors ${favorites.includes(quizResult.tea.name) ? 'bg-[#C84B31] border-[#C84B31] text-white' : 'border-[#879782]/30 text-[#2C3E35] hover:bg-[#879782]/10'}`}>
+                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                                    </button>
+                                </div>
+
+                                <div className="mb-6 flex flex-wrap gap-2">
+                                    {quizResult.matchedNeeds.map((need, idx) => (
+                                        <span key={idx} className="px-3 py-1 bg-[#879782]/10 text-[#2C3E35] text-xs rounded-full">
+                                            符合需求：{need}
+                                        </span>
+                                    ))}
+                                </div>
+
+                                <p className="text-[#2C3E35] leading-relaxed mb-8 font-serif-tc text-base border-l-2 border-[#C84B31] pl-4 py-1">
+                                    {quizResult.tea.desc}
+                                </p>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                                    <div>
+                                        <h3 className="font-serif-tc font-bold text-lg text-[#2C3E35] mb-3 flex items-center gap-2">
+                                            <span className="w-2 h-2 rounded-full bg-[#C84B31]"></span>材料與份量
+                                        </h3>
+                                        <ul className="space-y-2 text-sm text-[#2C3E35]">
+                                            {quizResult.tea.ingredients.map((ing, i) => (
+                                                <li key={i} className="flex items-center gap-2 border-b border-gray-100 pb-1">
+                                                    <span className="text-[#879782]">•</span> {ing}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-serif-tc font-bold text-lg text-[#2C3E35] mb-3 flex items-center gap-2">
+                                            <span className="w-2 h-2 rounded-full bg-[#C84B31]"></span>沖煮步驟
+                                        </h3>
+                                        <ol className="space-y-2 text-sm text-[#2C3E35]">
+                                            {quizResult.tea.steps.map((step, i) => (
+                                                <li key={i} className="flex gap-2">
+                                                    <span className="text-[#C84B31] font-bold">{i+1}.</span> {step}
+                                                </li>
+                                            ))}
+                                        </ol>
+                                    </div>
+                                </div>
+
+                                <div className="bg-[#879782]/10 p-4 rounded-xl text-xs text-[#2C3E35] mb-8 leading-relaxed">
+                                    <span className="font-bold text-[#C84B31]">注意事項：</span>{quizResult.tea.notes}
+                                </div>
+
+                                <div className="flex gap-4">
+                                    <button onClick={() => setCurrentView('quiz')} className="flex-1 py-3 bg-[#2C3E35] text-white rounded-full font-medium tracking-widest text-sm hover:bg-[#C84B31] transition-colors">
+                                        重新測驗
+                                    </button>
+                                    <button onClick={() => setCurrentView('catalog')} className="flex-1 py-3 border border-[#879782] text-[#2C3E35] rounded-full font-medium tracking-widest text-sm hover:bg-[#879782]/10 transition-colors">
+                                        瀏覽全部圖鑑
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {currentView === 'catalog' && (
+                            <div>
+                                <div className="text-center mb-12">
+                                    <h2 className="font-serif-tc text-3xl font-bold text-[#2C3E35] mb-2">茶飲圖鑑</h2>
+                                    <p className="text-sm text-[#879782]">探索經典漢方茶飲配方與文化背景</p>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {teas.map((tea, idx) => (
+                                        <div key={idx} className="bg-white/80 border border-[#879782]/20 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
+                                            <div>
+                                                <div className="flex justify-between items-start mb-3">
+                                                    <h3 className="font-serif-tc font-bold text-xl text-[#2C3E35]">{tea.name}</h3>
+                                                    <button onClick={() => toggleFavorite(tea.name)} className={`p-2 rounded-full ${favorites.includes(tea.name) ? 'text-[#C84B31]' : 'text-gray-400'}`}>
+                                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                                                    </button>
+                                                </div>
+                                                <p className="text-xs text-[#879782] mb-4 line-clamp-2">{tea.desc}</p>
+                                                <div className="flex flex-wrap gap-1 mb-6">
+                                                    {tea.tags.slice(0, 3).map((t, i) => (
+                                                        <span key={i} className="px-2 py-0.5 bg-[#879782]/10 text-[10px] text-[#2C3E35] rounded-full">{t}</span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <button 
+                                                onClick={() => setActiveCatalogItem(tea)}
+                                                className="w-full py-2.5 bg-[#2C3E35]/5 text-[#2C3E35] rounded-xl text-xs font-medium tracking-widest hover:bg-[#2C3E35] hover:text-white transition-colors">
+                                                查看完整配方
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {currentView === 'about' && (
+                            <div className="max-w-3xl mx-auto bg-white/80 border border-[#879782]/20 rounded-3xl p-8 md:p-12 shadow-sm">
+                                <h2 className="font-serif-tc text-3xl font-bold text-[#2C3E35] mb-6 text-center">關於茶鑑</h2>
+                                <div className="space-y-6 text-[#2C3E35] font-serif-tc leading-relaxed text-sm md:text-base">
+                                    <p>「漢方茶鑑」致力於以現代視覺美學重新整理傳統漢方茶飲知識，將日常所需的養生智慧融入當代生活節奏。</p>
+                                    <p>我們透過直覺的需求測驗與嚴謹的配方圖鑑，讓使用者能輕鬆探索不同茶飲的材料、沖煮方式與文化背景，找尋最適合自己的日常一杯茶。</p>
+                                    <p className="text-xs text-[#879782] pt-4 border-t border-gray-100">註：所有茶飲內容僅供一般文化與飲食參考，不具醫療效能。特殊體質或孕期請諮詢專業醫師。</p>
+                                </div>
+                            </div>
+                        )}
+                    </main>
+
+                    {/* Catalog Detail Modal */}
+                    {activeCatalogItem && (
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+                            <div className="bg-[#FBF9F5] border border-[#879782]/20 rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 md:p-8 shadow-xl">
+                                <div className="flex justify-between items-start mb-6">
+                                    <h3 className="font-serif-tc font-bold text-2xl text-[#2C3E35]">{activeCatalogItem.name}</h3>
+                                    <button onClick={() => setActiveCatalogItem(null)} className="p-2 text-gray-400 hover:text-[#2C3E35]">
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </button>
+                                </div>
+                                <p className="text-sm text-[#879782] mb-6 font-serif-tc">{activeCatalogItem.desc}</p>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                    <div>
+                                        <h4 className="font-serif-tc font-bold text-base text-[#2C3E35] mb-2">材料與份量</h4>
+                                        <ul className="space-y-1 text-xs text-[#2C3E35]">
+                                            {activeCatalogItem.ingredients.map((ing, i) => <li key={i}>• {ing}</li>)}
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-serif-tc font-bold text-base text-[#2C3E35] mb-2">沖煮步驟</h4>
+                                        <ol className="space-y-1 text-xs text-[#2C3E35]">
+                                            {activeCatalogItem.steps.map((s, i) => <li key={i}>{i+1}. {s}</li>)}
+                                        </ol>
+                                    </div>
+                                </div>
+                                <div className="bg-[#879782]/10 p-3 rounded-xl text-[11px] text-[#2C3E35] mb-6">
+                                    <span className="font-bold text-[#C84B31]">注意事項：</span>{activeCatalogItem.notes}
+                                </div>
+                                <button onClick={() => setActiveCatalogItem(null)} className="w-full py-3 bg-[#2C3E35] text-white rounded-full text-xs font-medium tracking-widest">
+                                    關閉視窗
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Favorites Drawer */}
+                    {favoritesOpen && (
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex justify-end">
+                            <div className="bg-[#FBF9F5] w-full max-w-md h-full p-6 overflow-y-auto shadow-2xl flex flex-col justify-between">
+                                <div>
+                                    <div className="flex justify-between items-center mb-6 border-b border-[#879782]/20 pb-4">
+                                        <h3 className="font-serif-tc font-bold text-xl text-[#2C3E35]">我的收藏茶飲 ({favorites.length})</h3>
+                                        <button onClick={() => setFavoritesOpen(false)} className="p-2 text-gray-400 hover:text-[#2C3E35]">
+                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        </button>
+                                    </div>
+                                    {favorites.length === 0 ? (
+                                        <p className="text-xs text-[#879782] text-center py-12 font-serif-tc">目前沒有收藏任何茶飲</p>
+                                    ) : (
+                                        <div className="space-y-4">
+                                            {favorites.map((fav, i) => (
+                                                <div key={i} className="bg-white p-4 rounded-2xl border border-[#879782]/20 flex justify-between items-center">
+                                                    <span className="font-serif-tc font-bold text-[#2C3E35] text-sm">{fav}</span>
+                                                    <button onClick={() => toggleFavorite(fav)} className="text-xs text-[#C84B31] hover:underline">移除</button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                                <button onClick={() => setFavoritesOpen(false)} className="w-full py-3 bg-[#2C3E35] text-white rounded-full text-xs font-medium tracking-widest mt-6">
+                                    關閉
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Footer */}
+                    <footer className="border-t border-[#879782]/20 py-8 bg-[#FBF9F5] text-center text-xs text-[#879782] font-serif-tc">
+                        <p>© 2026 漢方茶鑑 Hanfang Tea Compendium. All rights reserved.</p>
+                    </footer>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
